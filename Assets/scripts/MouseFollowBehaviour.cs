@@ -4,42 +4,44 @@ using System.Collections;
 public class MouseFollowBehaviour : MonoBehaviour {
 	
 	public Vector3 screenPosition;
-	private Resolution res;
-	private int resAdjustmentX;
-	private int resAdjustmentY;
-	private float ratio;
+	public Vector3 mousePosition;
+	private float distanceAdjustment;
+	private Plane plane;
+	private Ray ray;
+	private float raycast;
+	private Vector3 translationPoint;
 	
 	
 	// Use this for initialization
-	void Start () {
-		res = Screen.currentResolution;		
-		ratio = res.width/res.height;
+	void Awake () {	
 		
-		Debug.Log(res.width + "x" + res.height);
-		Debug.Log(ratio);
-	
 	}
 	
 	// Update is called once per frame
 	void Update () {
-		
 	}
 	
 	//Store the screen position of the object when the mouse clicks
 	private void OnMouseDown()
 	{
-	    screenPosition = Camera.mainCamera.WorldToScreenPoint(this.transform.position);
+		
 	}
 	
 	//When the mouse drags, change the object's screen position accordingly.
 	private void OnMouseDrag()
 	{
-	    //Read the mouse input axes
-	    screenPosition.x += Input.GetAxis("Mouse X");
-	    screenPosition.y += Input.GetAxis("Mouse Y");
-	
-	    //move the object to the world position to not change screen position
-	    transform.position = Camera.mainCamera.ScreenToWorldPoint(screenPosition);
+		plane = new Plane((Camera.mainCamera.transform.forward).normalized, this.transform.position);
+		mousePosition = Input.mousePosition;
+		ray = Camera.mainCamera.ScreenPointToRay(mousePosition);
+		Debug.Log(ray.origin + " "+ ray.direction + " ");
+		Debug.Log(mousePosition);
+		plane.Raycast(ray, out raycast);
+		Debug.Log(raycast);
+		Debug.DrawRay (ray.origin, ray.direction * 10, Color.yellow);
+		translationPoint = ray.GetPoint(raycast);
+		Debug.Log("Translationpoint: "+translationPoint);
+		
+	    this.transform.position = translationPoint;
 	}
 	
 	private void SetResAdjustments(){
