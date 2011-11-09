@@ -22,7 +22,7 @@ public class MouseFollowBehaviour : MonoBehaviour {
 	//When the mouse drags, change the object's screen position accordingly.
 	private void OnMouseDrag()
 	{
-		plane = new Plane((Camera.mainCamera.transform.forward).normalized, this.transform.position);
+		plane = new Plane((Camera.mainCamera.transform.forward).normalized, gameObject.transform.position);
 		mousePosition = Input.mousePosition;
 		ray = Camera.mainCamera.ScreenPointToRay(mousePosition);
 		plane.Raycast(ray, out raycast);
