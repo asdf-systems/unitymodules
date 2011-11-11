@@ -3,16 +3,17 @@ using System.Collections;
 
 public class MouseFollowBehaviour : MonoBehaviour {
 	
+	#region Fields
 	public Vector3 mousePosition;
 	private Plane plane;
 	private Ray ray;
 	private float raycast;
 	private Vector3 translationPoint;
+	#endregion
 	
 	
 	// Use this for initialization
-	void Awake () {	
-		
+	void Awake () {		
 	}
 	
 	// Update is called once per frame
