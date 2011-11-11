@@ -5,12 +5,13 @@ public class MousePaintBehaviour : MonoBehaviour {
 	
     public GameObject Prefab;
 	private Plane plane;
-	private Vector3 mousePosition;
+	private Vector3 currentMousePosition;
 	private Ray ray;
 	private float raycast;
 	private Vector3 newPosition;
-	private Vector3 oldPosition;
-	private int quantity;
+	private Vector3 oldPrefabPosition;
+	private float distance;
+	private bool first = true;
 	
 	// Use this for initialization
     void Awake() {
@@ -20,64 +21,47 @@ public class MousePaintBehaviour : MonoBehaviour {
 	// Update is called once per frame
 	void Update () {
 		if (Input.GetMouseButton(0)) {
+
 			paintPrefab();
+		}
+		else{
+			first = true;
 		}
 	}
 	
 	private void paintPrefab(){
-		mousePosition = Input.mousePosition;
-		plane = new Plane((Camera.mainCamera.transform.forward).normalized, new Vector3(0,0,0));
-		ray = Camera.mainCamera.ScreenPointToRay(mousePosition);
+		
+		calculateRayStuff();
+		if (first) {
+			Instantiate(Prefab,newPosition,Quaternion.identity);
+			oldPrefabPosition = newPosition;
+			first = false;
+		}
+
+		if (distance > Prefab.renderer.bounds.extents.magnitude) {
+			Debug.Log("BigGap: " + distance);
+			float step = 1F/(distance);
+			 
+			for(float i = 0; i <=1; i+=step){
+				Vector3 tmp = oldPrefabPosition + (oldPrefabPosition-newPosition)*i;
+				Instantiate(Prefab,tmp,Quaternion.identity);				
+			}
+			oldPrefabPosition = newPosition;
+		}
+	}
+	
+	private void calculateRayStuff(){
+		currentMousePosition = Input.mousePosition;
+		
+		//take this plane to place Prefab always othogonal to camera
+//		plane = new Plane((Camera.mainCamera.transform.forward).normalized, new Vector3(0,0,0));
+		
+		//take this plane to place Prefab always on x-z-plane
+		plane = new Plane(Vector3.up.normalized, new Vector3(0,0,0));
+		
+		ray = Camera.mainCamera.ScreenPointToRay(currentMousePosition);
 		plane.Raycast(ray, out raycast);
 		newPosition = ray.GetPoint(raycast);
-		Debug.Log(Mathf.Abs(newPosition.x-oldPosition.x));
-		Debug.Log(Mathf.Abs(newPosition.y-oldPosition.y));
-		Debug.Log(Mathf.Abs(newPosition.z-oldPosition.z));
-		
-		if(positionChangedSufficiently()){
-			switch (positionCHangedTooMuch(out quantity)) {
-				case('x'):
-					for (int i = 0; i < quantity; i++) {
-						Instantiate(Prefab,newPosition,Quaternion.identity);
-					}
-					break;
-				case('y'):
-//					code
-					break;
-				case('z'):
-//					code
-					break;
-				default:
-//					code
-					break;
-			}
-		}
-	}
-	
-	private bool positionChangedSufficiently(){
-		if(Mathf.Abs(newPosition.x-oldPosition.x) > Prefab.renderer.bounds.size.x ||
-		   Mathf.Abs(newPosition.y-oldPosition.y) > Prefab.renderer.bounds.size.y ||
-		   Mathf.Abs(newPosition.z-oldPosition.z) > Prefab.renderer.bounds.size.z){
-
-			return true;
-		}
-		return false;
-	}
-	
-	private char positionChangedTooMuch(out int quant){
-		if(Mathf.Abs(newPosition.x-oldPosition.x)/Prefab.renderer.bounds.size.x > 1){
-			quant = Mathf.Abs(newPosition.x-oldPosition.x)/Prefab.renderer.bounds.size.x;
-			return 'x';
-		}
-		else if(Mathf.Abs(newPosition.y-oldPosition.y)/Prefab.renderer.bounds.size.y > 1){
-			quant = Mathf.Abs(newPosition.y-oldPosition.y)/Prefab.renderer.bounds.size.y;
-			return 'y';
-		}
-		else if(Mathf.Abs(newPosition.z-oldPosition.z)/Prefab.renderer.bounds.size.z > 1){
-			Mathf.Abs(newPosition.z-oldPosition.z)/Prefab.renderer.bounds.size.z;
-			return 'z';
-		}
-		
-		else return null;
+		distance = Vector3.Distance(newPosition,oldPrefabPosition);
 	}
 }
